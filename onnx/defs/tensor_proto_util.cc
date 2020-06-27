@@ -58,10 +58,15 @@ namespace ONNX_NAMESPACE {
         }                                                                  \
       }                                                                    \
     }                                                                      \
+    type* aligned_buffer;                                                  \
+    size_t sz = raw_data.size();                                           \
+    size_t allocated_sz = (sz + sizeof(type) - 1) / sizeof(type);          \
+    aligned_buffer = (type*)malloc(sizeof(type) * allocated_sz);           \
+    memcpy(aligned_buffer, bytes, sz);                                     \
     res.insert(                                                            \
         res.end(),                                                         \
-        reinterpret_cast<const type*>(bytes),                              \
-        reinterpret_cast<const type*>(bytes + raw_data.size()));           \
+        reinterpret_cast<const type*>(aligned_buffer),                     \
+        reinterpret_cast<const type*>(aligned_buffer + allocated_sz));     \
     return res;                                                            \
   }
 

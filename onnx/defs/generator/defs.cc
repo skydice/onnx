@@ -159,10 +159,19 @@ ONNX_OPERATOR_SET_SCHEMA(
           std::vector<int64_t> targetShape;
           if (targetShapeInitializer->has_raw_data()) {
             const std::string& bytes = targetShapeInitializer->raw_data();
+            const char* val = bytes.c_str();
+            int64_t *aligned_buffer;
+
+            size_t sz = bytes.size();
+            size_t allocated_sz = (sz + sizeof(int64_t) - 1) / sizeof(int64_t);
+
+            aligned_buffer = (int64_t*)malloc(sizeof(int64_t) * allocated_sz);
+            memcpy(aligned_buffer, val, sz);
+
             targetShape.insert(
                 targetShape.end(),
-                reinterpret_cast<const int64_t*>(bytes.c_str()),
-                reinterpret_cast<const int64_t*>(bytes.c_str() + bytes.size()));
+                reinterpret_cast<const int64_t*>(aligned_buffer),
+                reinterpret_cast<const int64_t*>(aligned_buffer + allocated_sz));
           } else {
             const auto& data = targetShapeInitializer->int64_data();
             targetShape.insert(targetShape.end(), data.begin(), data.end());
